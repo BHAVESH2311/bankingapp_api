@@ -19,7 +19,7 @@ type Claims struct {
 var secretKeyJWT = []byte("Secret JWT")
 
 func SignJWT(claims Claims) (string, error) {
-	claims.StandardClaims.ExpiresAt = time.Now().Add(time.Minute * 10).Unix()
+	claims.StandardClaims.ExpiresAt = time.Now().Add(time.Minute * 15).Unix()
 
 	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -61,28 +61,16 @@ func AuthenticationHandler(h http.Handler) http.Handler {
 
 		if len(token) == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("No Token Present"))
+			w.Write([]byte("Token is not Present"))
 			return
 		}
-
-		// if err != nil {
-		// 	if err == jwt.ErrSignatureInvalid {
-		// 		w.WriteHeader(http.StatusUnauthorized)
-		// 		w.Write([]byte("Status Unauthorized"))
-
-		// 	}
-
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	w.Write([]byte("Bad Request"))
-		// 	return
-		// }
 
 		tokenStr := token[0]
 		_, err := Verify(tokenStr)
 
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized Access"))
+			w.Write([]byte("Only Admins can Access"))
 			return
 		}
 
@@ -97,7 +85,7 @@ func IsAdmin(function func(http.ResponseWriter, *http.Request)) func(http.Respon
 
 		if len(token) == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("No Token Present"))
+			w.Write([]byte(" Token is not Present"))
 			return
 		}
 
@@ -106,13 +94,13 @@ func IsAdmin(function func(http.ResponseWriter, *http.Request)) func(http.Respon
 
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized Access"))
+			w.Write([]byte("Only Admins can Access"))
 			return
 		}
 
 		if !user.IsAdmin {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"message": "Unauthorized Access"})
+			json.NewEncoder(w).Encode(map[string]string{"message": "Only Admins can Access"})
 			return
 		}
 
